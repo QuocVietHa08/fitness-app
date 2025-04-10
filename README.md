@@ -1,32 +1,24 @@
 # Ripper App
 
-Ripper App is a simple app to help you to keep track of your expenses.
+Ripper App is a simple app to help you keep track of your habit.
 
+
+## Demo video
+![demo-gif](./demo.gif)
+
+Link: https://www.loom.com/share/8568226215b8414db2c63a98aabf9922?sid=5029fce1-2275-4de6-8361-ed2c6d3785af
 ## Tech Stack
 
 - React Native
 - Expo
 - React Navigation
-- React Query
-- React Native Paper
-- React Hooks Form
-- React Native SVG
-- React Native Vector Icons
 - Expo Router
 - Tamagui
 
 ## Features
-
-- Keep track of your expenses
-- Categorize your expenses
-- Set a budget
-- See your expenses in a calendar view
-- See your expenses in a list view
-- See your expenses in a pie chart view
-- Add new expenses
-- Edit existing expenses
-- Delete existing expenses
-- Login and Register
+- Login
+- Theme switcher (Dark mode, light mode)
+- Home Page with infinity scroll
 
 ## How to Run
 
