@@ -4,8 +4,6 @@ Ripper App is a simple app to help you keep track of your habit.
 
 
 ## Demo video
-![demo-gif](./demo.gif)
-
 Link: https://www.loom.com/share/8568226215b8414db2c63a98aabf9922?sid=5029fce1-2275-4de6-8361-ed2c6d3785af
 ## Tech Stack
 
