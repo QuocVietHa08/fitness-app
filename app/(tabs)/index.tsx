@@ -205,15 +205,17 @@ export default function HomeScreen() {
       </View>
     );
   }, [loading]);
-  console.log('hello')
+  console.log('hello', sectionedBookings)
 
   return (
     <View style={styles.container}>
       <FlatList
         data={sectionedBookings}
-        keyExtractor={(item, index) => `${item.title}-${index}`}
-        renderItem={({ item }) => (
-          <View>
+        keyExtractor={(item, index) => {
+          console.log("item------->", item.title, index)
+          return `${index}`}}
+        renderItem={({ item, index }) => (
+          <View key={index}>
             <View style={styles.sectionHeader}>
               <Text style={styles.sectionHeaderText}>{item.title}</Text>
             </View>

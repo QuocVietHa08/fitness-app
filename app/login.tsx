@@ -4,6 +4,7 @@ import { Image, Text, View } from "tamagui";
 import { useRouter } from "expo-router";
 import useAuthStore from "../store/useAuthStore";
 import Logo from '@/assets/images/logo.png';
+import Toast from 'react-native-toast-message';
 
 export default function LoginScreen() {
   const [email, setEmail] = useState("");
@@ -13,14 +14,22 @@ export default function LoginScreen() {
   const isFormValid = email.trim() !== "" && password.trim() !== "";
 
   const handleLogin = useCallback(() => {
-    // Login using the auth store
+    if (password === '123') {
+      Toast.show({
+        type: 'error',
+        text1: 'Invalid password',
+        text2: 'Please try again',
+      })
+      return
+    }
+
     useAuthStore.getState().login(email, password);
-    // Navigate to Home screen
     router.replace("/(tabs)");
   }, [email, password, router]);
 
   return (
     <View style={styles.container}>
+      <Toast />
       <View style={styles.logoContainer}>
         <Image source={Logo} style={styles.logo} />
       </View>
@@ -36,12 +45,16 @@ export default function LoginScreen() {
           onChangeText={setEmail}
           autoCapitalize="none"
           keyboardType="email-address"
+          autoCorrect={false}
+          textContentType="emailAddress"
+          placeholderTextColor="#666"
+          underlineColorAndroid="transparent"
         />
 
         <Text style={styles.label}>Password</Text>
         <TextInput
           style={styles.input}
-          placeholder="Enter Password"
+          placeholder="Enter Password checkasdfas"
           value={password}
           onChangeText={setPassword}
           secureTextEntry

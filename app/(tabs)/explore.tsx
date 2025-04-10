@@ -17,6 +17,10 @@ import useThemeStore, {
   ThemeMode,
   ThemeAccent,
 } from "../../store/useThemeStore";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { useRoute } from "@react-navigation/native";
+import { useRouter } from "expo-router";
+import useAuthStore from "@/store/useAuthStore";
 
 // Color option component for accent color selection
 const ColorOption = ({
@@ -87,10 +91,15 @@ const ThemeModeOption = ({
 };
 
 export default function SettingsScreen() {
+  // Add a forceUpdate mechanism
+  const [, forceUpdate] = useState({});
+  
   const accent = useThemeStore((state) => state.accent)
   const mode= useThemeStore((state) => state.mode)
   const setMode = useThemeStore((state) => state.setMode)
   const setAccent = useThemeStore((state) => state.setAccent)
+  const router = useRouter();
+  const logout = useAuthStore((state) => state.logout)
 
   const systemColorScheme = useColorScheme();
 
@@ -103,13 +112,28 @@ export default function SettingsScreen() {
     purple: "#8855FF",
   };
 
+  const handleLogout = () => {
+    logout();
+    router.push('/login')
+  }
+
+  // Determine the current theme name based on mode and accent
+  const currentMode = mode === "system" ? systemColorScheme || "light" : mode;
+  const themeName = `${currentMode}_${accent}` as const;
+
+  useEffect(() => {
+    forceUpdate({});
+  }, [mode, accent, systemColorScheme]);
+
+
   return (
     <Theme
-      name={`${
-        mode === "system" ? systemColorScheme || "light" : mode
-      }_${accent}`}
+      name={themeName}
+      key={themeName}
     >
-      <ScrollView style={styles.container}>
+      <ScrollView style={[styles.container, {
+        backgroundColor: themeName.includes('light') ? 'white' : 'black'
+      }]}>
         <YStack padding="$4" space="$6">
           <H2>Appearance</H2>
 
@@ -154,10 +178,14 @@ export default function SettingsScreen() {
                 />
               ))}
             </XStack>
-            <Text>Hello</Text>
+          </YStack>
+          <YStack space="$4">
+            <Button onPress={handleLogout} backgroundColor="$accent" color="white">
+              Logout
+            </Button>
           </YStack>
 
-          <YStack space="$4">
+          {/* <YStack space="$4">
             <Paragraph fontWeight="bold" color="$text">
               Preview
             </Paragraph>
@@ -181,7 +209,7 @@ export default function SettingsScreen() {
                 </XStack>
               </YStack>
             </Card>
-          </YStack>
+          </YStack> */}
         </YStack>
       </ScrollView>
     </Theme>
@@ -190,6 +218,7 @@ export default function SettingsScreen() {
 
 const styles = StyleSheet.create({
   container: {
+    marginTop: 40,
     flex: 1,
     backgroundColor: "transparent",
   },

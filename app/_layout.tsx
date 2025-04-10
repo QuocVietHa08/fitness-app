@@ -16,15 +16,62 @@ import { TamaguiProvider, View } from "@tamagui/core";
 import config from "../tamagui.config";
 import useAuthStore from "../store/useAuthStore";
 import useThemeStore, { ThemeAccent, ThemeMode } from "../store/useThemeStore";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 // Prevent the splash screen from auto-hiding before asset loading is complete.
 SplashScreen.preventAutoHideAsync();
 
-function AuthenticationGuard({ children }: { children: React.ReactNode }) {
-  // For now, we'll just render the children without any authentication logic
-  // This will prevent any infinite loops while you're developing
-  return <>{children}</>;
+async function getStoredUser() {
+  const storedUser = await AsyncStorage.getItem("user");
+  if (storedUser) {
+    return JSON.parse(storedUser);
+  }
+  return null;
 }
+
+const AuthenticationGuard = ({ children }: { children: React.ReactNode }) => {
+  const [user, setUser] = useState<any | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const segments = useSegments();
+  const router = useRouter();
+  const authState = useAuthStore.getState();
+
+  // Load user data on mount
+  useEffect(() => {
+    const getUser = async () => {
+      try {
+        const storedUser = await getStoredUser();
+        if (storedUser) {
+          setUser(storedUser);
+        }
+      } catch (error) {
+        console.error("Error loading user data:", error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    getUser();
+  }, []);
+
+  // Handle navigation based on auth state
+  useEffect(() => {
+    if (isLoading) return; // Don't navigate while still loading
+
+    const inAuthGroup = segments[0] === "(tabs)";
+    const inLoginScreen = segments[0] === "login";
+
+    if (!authState.isAuthenticated && inAuthGroup) {
+      // If not authenticated and trying to access protected routes, redirect to login
+      router.replace("/login");
+    } else if (authState.isAuthenticated && inLoginScreen) {
+      // If authenticated and on login screen, redirect to home
+      router.replace("/(tabs)");
+    }
+  }, [isLoading, segments, router, authState.isAuthenticated]);
+
+  // Show children regardless of auth state - navigation is handled by the effect above
+  return <>{children}</>;
+};
 
 export default function RootLayout() {
   const systemColorScheme = useColorScheme();
@@ -32,7 +79,6 @@ export default function RootLayout() {
     SpaceMono: require("../assets/fonts/SpaceMono-Regular.ttf"),
   });
 
-  // Get theme settings from store - using getState to avoid subscription and re-renders
   const themeStore = useMemo(() => {
     const state = useThemeStore.getState();
     return {
@@ -41,7 +87,6 @@ export default function RootLayout() {
     };
   }, []);
 
-  // Determine the actual color scheme based on theme mode
   const actualColorScheme = useMemo(() => {
     if (themeStore.mode === "system") {
       return systemColorScheme || "light";
@@ -49,12 +94,10 @@ export default function RootLayout() {
     return themeStore.mode;
   }, [themeStore.mode, systemColorScheme]);
 
-  // Set the theme name based on color scheme and accent color
   const themeName = useMemo(() => {
     return `${actualColorScheme}_${themeStore.accent}`;
   }, [actualColorScheme, themeStore.accent]);
 
-  // Handle splash screen hiding
   useEffect(() => {
     if (loaded) {
       SplashScreen.hideAsync();
@@ -67,18 +110,14 @@ export default function RootLayout() {
 
   return (
     <TamaguiProvider config={config}>
-      <ThemeProvider
-        value={actualColorScheme === "dark" ? DarkTheme : DefaultTheme}
-      >
-        <AuthenticationGuard>
-          <Stack>
-            <Stack.Screen name="login" options={{ headerShown: false }} />
-            <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-            <Stack.Screen name="+not-found" />
-          </Stack>
-        </AuthenticationGuard>
-        <StatusBar style={actualColorScheme === "dark" ? "light" : "dark"} />
-      </ThemeProvider>
+      <AuthenticationGuard>
+        <Stack>
+          <Stack.Screen name="login" options={{ headerShown: false }} />
+          <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+          <Stack.Screen name="+not-found" />
+        </Stack>
+      </AuthenticationGuard>
+      <StatusBar style={actualColorScheme === "dark" ? "light" : "dark"} />
     </TamaguiProvider>
   );
 }
