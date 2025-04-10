@@ -1,109 +1,196 @@
-import { StyleSheet, Image, Platform } from 'react-native';
+import { StyleSheet, Switch, TouchableOpacity, ScrollView } from "react-native";
+import {
+  Text,
+  View,
+  YStack,
+  XStack,
+  Card,
+  H2,
+  Paragraph,
+  Button,
+  Theme,
+  useTheme,
+} from "tamagui";
+import { useState, useEffect } from "react";
+import { useColorScheme } from "@/hooks/useColorScheme";
+import useThemeStore, {
+  ThemeMode,
+  ThemeAccent,
+} from "../../store/useThemeStore";
 
-import { Collapsible } from '@/components/Collapsible';
-import { ExternalLink } from '@/components/ExternalLink';
-import ParallaxScrollView from '@/components/ParallaxScrollView';
-import { ThemedText } from '@/components/ThemedText';
-import { ThemedView } from '@/components/ThemedView';
-import { IconSymbol } from '@/components/ui/IconSymbol';
-
-export default function TabTwoScreen() {
+// Color option component for accent color selection
+const ColorOption = ({
+  color,
+  name,
+  isSelected,
+  onSelect,
+}: {
+  color: string;
+  name: ThemeAccent;
+  isSelected: boolean;
+  onSelect: () => void;
+}) => {
   return (
-    <ParallaxScrollView
-      headerBackgroundColor={{ light: '#D0D0D0', dark: '#353636' }}
-      headerImage={
-        <IconSymbol
-          size={310}
-          color="#808080"
-          name="chevron.left.forwardslash.chevron.right"
-          style={styles.headerImage}
+    <TouchableOpacity onPress={onSelect} style={{ marginRight: 16 }}>
+      <YStack alignItems="center" space="$2">
+        <View
+          width={40}
+          height={40}
+          borderRadius={20}
+          backgroundColor={color}
+          borderWidth={isSelected ? 3 : 0}
+          borderColor="$background"
+          shadowColor="#000"
+          shadowOffset={{ width: 0, height: 2 }}
+          shadowOpacity={0.1}
+          shadowRadius={3}
         />
-      }>
-      <ThemedView style={styles.titleContainer}>
-        <ThemedText type="title">Explore</ThemedText>
-      </ThemedView>
-      <ThemedText>This app includes example code to help you get started.</ThemedText>
-      <Collapsible title="File-based routing">
-        <ThemedText>
-          This app has two screens:{' '}
-          <ThemedText type="defaultSemiBold">app/(tabs)/index.tsx</ThemedText> and{' '}
-          <ThemedText type="defaultSemiBold">app/(tabs)/explore.tsx</ThemedText>
-        </ThemedText>
-        <ThemedText>
-          The layout file in <ThemedText type="defaultSemiBold">app/(tabs)/_layout.tsx</ThemedText>{' '}
-          sets up the tab navigator.
-        </ThemedText>
-        <ExternalLink href="https://docs.expo.dev/router/introduction">
-          <ThemedText type="link">Learn more</ThemedText>
-        </ExternalLink>
-      </Collapsible>
-      <Collapsible title="Android, iOS, and web support">
-        <ThemedText>
-          You can open this project on Android, iOS, and the web. To open the web version, press{' '}
-          <ThemedText type="defaultSemiBold">w</ThemedText> in the terminal running this project.
-        </ThemedText>
-      </Collapsible>
-      <Collapsible title="Images">
-        <ThemedText>
-          For static images, you can use the <ThemedText type="defaultSemiBold">@2x</ThemedText> and{' '}
-          <ThemedText type="defaultSemiBold">@3x</ThemedText> suffixes to provide files for
-          different screen densities
-        </ThemedText>
-        <Image source={require('@/assets/images/react-logo.png')} style={{ alignSelf: 'center' }} />
-        <ExternalLink href="https://reactnative.dev/docs/images">
-          <ThemedText type="link">Learn more</ThemedText>
-        </ExternalLink>
-      </Collapsible>
-      <Collapsible title="Custom fonts">
-        <ThemedText>
-          Open <ThemedText type="defaultSemiBold">app/_layout.tsx</ThemedText> to see how to load{' '}
-          <ThemedText style={{ fontFamily: 'SpaceMono' }}>
-            custom fonts such as this one.
-          </ThemedText>
-        </ThemedText>
-        <ExternalLink href="https://docs.expo.dev/versions/latest/sdk/font">
-          <ThemedText type="link">Learn more</ThemedText>
-        </ExternalLink>
-      </Collapsible>
-      <Collapsible title="Light and dark mode components">
-        <ThemedText>
-          This template has light and dark mode support. The{' '}
-          <ThemedText type="defaultSemiBold">useColorScheme()</ThemedText> hook lets you inspect
-          what the user's current color scheme is, and so you can adjust UI colors accordingly.
-        </ThemedText>
-        <ExternalLink href="https://docs.expo.dev/develop/user-interface/color-themes/">
-          <ThemedText type="link">Learn more</ThemedText>
-        </ExternalLink>
-      </Collapsible>
-      <Collapsible title="Animations">
-        <ThemedText>
-          This template includes an example of an animated component. The{' '}
-          <ThemedText type="defaultSemiBold">components/HelloWave.tsx</ThemedText> component uses
-          the powerful <ThemedText type="defaultSemiBold">react-native-reanimated</ThemedText>{' '}
-          library to create a waving hand animation.
-        </ThemedText>
-        {Platform.select({
-          ios: (
-            <ThemedText>
-              The <ThemedText type="defaultSemiBold">components/ParallaxScrollView.tsx</ThemedText>{' '}
-              component provides a parallax effect for the header image.
-            </ThemedText>
-          ),
-        })}
-      </Collapsible>
-    </ParallaxScrollView>
+        <Text fontSize={12} color="$text">
+          {name.charAt(0).toUpperCase() + name.slice(1)}
+        </Text>
+      </YStack>
+    </TouchableOpacity>
+  );
+};
+
+// Theme mode option component
+const ThemeModeOption = ({
+  mode,
+  label,
+  isSelected,
+  onSelect,
+}: {
+  mode: ThemeMode;
+  label: string;
+  isSelected: boolean;
+  onSelect: () => void;
+}) => {
+  return (
+    <TouchableOpacity onPress={onSelect} style={{ marginRight: 16 }}>
+      <Card
+        bordered={isSelected}
+        borderColor={isSelected ? "$accent" : "transparent"}
+        backgroundColor={isSelected ? "$card" : "$background"}
+        padding="$3"
+        width={100}
+        height={80}
+        justifyContent="center"
+        alignItems="center"
+        borderRadius="$4"
+      >
+        <Text fontSize={14} fontWeight="bold" color="$text">
+          {label}
+        </Text>
+      </Card>
+    </TouchableOpacity>
+  );
+};
+
+export default function SettingsScreen() {
+  const accent = useThemeStore((state) => state.accent)
+  const mode= useThemeStore((state) => state.mode)
+  const setMode = useThemeStore((state) => state.setMode)
+  const setAccent = useThemeStore((state) => state.setAccent)
+
+  const systemColorScheme = useColorScheme();
+
+  const theme = useTheme();
+
+  const accentColors: Record<ThemeAccent, string> = {
+    orange: "#FF6B00",
+    blue: "#0088FF",
+    green: "#00CC88",
+    purple: "#8855FF",
+  };
+
+  return (
+    <Theme
+      name={`${
+        mode === "system" ? systemColorScheme || "light" : mode
+      }_${accent}`}
+    >
+      <ScrollView style={styles.container}>
+        <YStack padding="$4" space="$6">
+          <H2>Appearance</H2>
+
+          <YStack space="$4">
+            <Paragraph fontWeight="bold" color="$text">
+              Theme Mode
+            </Paragraph>
+            <XStack>
+              <ThemeModeOption
+                mode="light"
+                label="Light"
+                isSelected={mode === "light"}
+                onSelect={() => setMode("light")}
+              />
+              <ThemeModeOption
+                mode="dark"
+                label="Dark"
+                isSelected={mode === "dark"}
+                onSelect={() => setMode("dark")}
+              />
+              <ThemeModeOption
+                mode="system"
+                label="System"
+                isSelected={mode === "system"}
+                onSelect={() => setMode("system")}
+              />
+            </XStack>
+          </YStack>
+
+          <YStack space="$4">
+            <Paragraph fontWeight="bold" color="$text">
+              Accent Color
+            </Paragraph>
+            <XStack>
+              {Object.entries(accentColors).map(([name, color]) => (
+                <ColorOption
+                  key={name}
+                  name={name as ThemeAccent}
+                  color={color}
+                  isSelected={accent === name}
+                  onSelect={() => setAccent(name as ThemeAccent)}
+                />
+              ))}
+            </XStack>
+            <Text>Hello</Text>
+          </YStack>
+
+          <YStack space="$4">
+            <Paragraph fontWeight="bold" color="$text">
+              Preview
+            </Paragraph>
+            <Card backgroundColor="$card" padding="$4" borderRadius="$4">
+              <YStack space="$4">
+                <H2 color="$text">Theme Preview</H2>
+                <Paragraph color="$muted">
+                  This is how your selected theme will look throughout the app.
+                </Paragraph>
+                <XStack space="$2">
+                  <Button backgroundColor="$accent" color="white">
+                    Primary Button
+                  </Button>
+                  <Button
+                    variant="outlined"
+                    borderColor="$accent"
+                    color="$accent"
+                  >
+                    Secondary
+                  </Button>
+                </XStack>
+              </YStack>
+            </Card>
+          </YStack>
+        </YStack>
+      </ScrollView>
+    </Theme>
   );
 }
 
 const styles = StyleSheet.create({
-  headerImage: {
-    color: '#808080',
-    bottom: -90,
-    left: -35,
-    position: 'absolute',
-  },
-  titleContainer: {
-    flexDirection: 'row',
-    gap: 8,
+  container: {
+    flex: 1,
+    backgroundColor: "transparent",
   },
 });
